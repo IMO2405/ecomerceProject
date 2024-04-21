@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card mt-5">
+            <h5 class="card-header bg-primary text-white">Update Profile</h5>
+            <div class="card-body">
+                <form method="post" action="{% url 'update' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_username">Username</label>
+                        <input type="text" class="form-control" id="id_username" name="username" value="{{ user.username }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_current_email">Current Email</label>
+                        <input type="email" class="form-control" id="id_current_email" name="current_email" value="{{ user.email }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_old_password">Old Password</label>
+                        <input type="password" class="form-control" id="id_old_password" name="old_password" placeholder="Enter old password">
+                    </div>
+                    <div class="form-group">
+                        <label for="id_new_password1">New Password</label>
+                        <input type="password" class="form-control" id="id_new_password1" name="new_password1" placeholder="Enter new password">
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('id_new_password1')">Show</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_new_password2">Confirm New Password</label>
+                        <input type="password" class="form-control" id="id_new_password2" name="new_password2" placeholder="Confirm new password">
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('id_new_password2')">Show</button>
+                    </div>
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function togglePassword(elementId) {
+    var passwordInput = document.getElementById(elementId);
+    if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+    } else {
+        passwordInput.type = "password";
+    }
+}
+</script>
+{% endblock %}

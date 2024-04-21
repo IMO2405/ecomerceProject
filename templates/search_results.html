@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h3 class="text-center text-secondary mt-4 mb-4">Search Results</h3>
+            <hr>
+            {% for every in object_list %}
+            <div class="card mb-3">
+                <div class="row no-gutters">
+                    <div class="col-md-3">
+                        <img src="{{ every.image_url }}" class="card-img" alt="{{ every.title }}">
+                    </div>
+                    <div class="col-md-9">
+                        <div class="card-body">
+                            <h5 class="card-title"><a href="{% url 'detail' every.pk %}" class="text-dark">{{ every.title }}</a></h5>
+                            <p class="card-text">Author: {{ every.author }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-danger" role="alert">
+                <strong>Nothing found :(</strong>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock content %}
