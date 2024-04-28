@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h2>Your Cart</h2>
+    {% if cart_items %}
+      <form action="{% url 'cart_checkout' %}" method="post">
+        {% csrf_token %}
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Total Price</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in cart_items %}
+              <tr>
+                <td><input type="checkbox" name="selected_items" value="{{ item.id }}" class="form-check-input"></td>
+                <td>{{ item.book.title }}</td>
+                <td>${{ item.book.price|floatformat:2 }}</td>
+                <td>
+                  <form action="{% url 'cart_item_update' item.id %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control">
+                    <button type="submit" class="btn btn-info btn-sm mt-2">Update</button>
+                  </form>
+                </td>
+                <td>${{ item.total_price|floatformat:2 }}</td>
+                <td>
+                  <form action="{% url 'cart_item_delete' item.id %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="d-flex justify-content-between">
+          <button type="submit" class="btn btn-success">Proceed to Checkout</button>
+        </div>
+      </form>
+    {% else %}
+      <p>Your cart is empty.</p>
+    {% endif %}
+  </div>
+{% endblock %}

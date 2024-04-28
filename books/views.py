@@ -1,13 +1,26 @@
+from pyexpat.errors import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Book, Order, Category
+from .models import Book, Cart, CartItem, Order, Category
 from django.db.models import Q
 from django.http import JsonResponse
 import json
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.generic import UpdateView
+
+
+class CategoryDetailView(DetailView):
+    model = Category
+    template_name = 'category_detail.html'
+    context_object_name = 'category'
+
+class CategoryListView(ListView):
+    model = Category
+    template_name = 'category_list.html'
+    context_object_name = 'categories' 
 
 class BooksListView(ListView):
     model = Book
@@ -17,18 +30,30 @@ class BooksDetailView(DetailView):
     model = Book
     template_name = 'detail.html'
 
+
+
 class SearchResultsListView(ListView):
     model = Book
     template_name = 'search_results.html'
 
     def get_queryset(self):
-        query = self.request.GET.get('q')
-        print(f"Recherche pour: {query}")  # Ajoutez cette ligne pour le débogage
+        query = self.request.GET.get('q', '')  # Default to empty string if not provided
+        category_id = self.request.GET.get('category_id', '')  # Ensure this matches the name in your form
+
+        queryset = Book.objects.all()  # Start with all books
+
         if query:
-            result = Book.objects.filter(Q(title__icontains=query) | Q(author__icontains=query))
-            print(f"Nombre de résultats trouvés: {result.count()}")  # Débogage
-            return result
-        return Book.objects.none()
+            queryset = queryset.filter(Q(title__icontains=query) | Q(author__icontains=query))
+
+        if category_id and category_id.isdigit():  # Ensure category_id is a valid number
+            queryset = queryset.filter(category__id=category_id)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(SearchResultsListView, self).get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()  # Include all categories in context for dropdown
+        return context
 
 
 
@@ -96,10 +121,42 @@ def delete_book(request, pk):
         return redirect('list')  # Assurez-vous que 'list' est le nom correct de la vue qui affiche la liste des livres
     return redirect('list')
 
-class BookCheckoutView(LoginRequiredMixin, DetailView):
-    model = Book
-    template_name = 'checkout.html'
+class BookCheckoutView(LoginRequiredMixin, View):
     login_url = 'login'
+    template_name = 'checkout.html'
+
+    def post(self, request):
+        # Retrieve IDs from POST request (the selected cart items)
+        selected_items = request.POST.getlist('selected_items')
+
+        if not selected_items:
+            messages.error(request, "No items selected for checkout.")
+            return redirect('cart_detail')
+        
+        # Fetch the CartItems
+        cart_items = CartItem.objects.filter(id__in=selected_items, cart__user=request.user)
+
+        # Calculate the total cost or prepare data for payment processing
+        total = sum(item.book.price * item.quantity for item in cart_items)
+
+        # Check if there are items to checkout
+        if not cart_items:
+            messages.error(request, "Selected items are not available in your cart.")
+            return redirect('cart_detail')
+        
+        # Context for the template
+        context = {
+            'cart_items': cart_items,
+            'total_amount': total,  # Ensuring consistency with the template expecting `total_amount`
+        }
+
+        # Here you would typically handle payment logic, for now we just render a confirmation page
+        return render(request, self.template_name, context)
+
+    def get(self, request):
+        # Redirect or display a message if accessed via GET
+        messages.error(request, "Checkout page can only be accessed through cart selection.")
+        return redirect('cart_detail')
 
 
 
@@ -111,3 +168,42 @@ def paymentComplete(request):
         product=product
     )
     return JsonResponse('Payment completed!', safe=False)
+
+def cart_detail(request):
+    try:
+        cart = Cart.objects.get(user=request.user)  # assuming user is logged in
+        items = cart.items.all()
+    except Cart.DoesNotExist:
+        items = []
+    return render(request, 'cart/cart_detail.html', {'cart_items': items})
+
+def cart_item_update(request, item_id):
+    cart_item = get_object_or_404(CartItem, id=item_id)
+    quantity = request.POST.get('quantity', 1)
+    if int(quantity) <= 0:
+        cart_item.delete()  # Remove item if quantity less than or equal to 0
+    else:
+        cart_item.quantity = int(quantity)
+        cart_item.save()
+    return redirect('cart_detail')
+
+@login_required
+def cart_item_delete(request, item_id):
+    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)  # Ensures the item belongs to the user's cart
+    cart_item.delete()
+    return redirect('cart_detail')
+
+@login_required
+def add_to_cart(request, book_id):
+    book = get_object_or_404(Book, pk=book_id)
+    cart, created = Cart.objects.get_or_create(user=request.user, defaults={'user': request.user})
+
+    # Vérifie si le livre est déjà dans le panier
+    cart_item, created = CartItem.objects.get_or_create(cart=cart, book=book, defaults={'cart': cart, 'book': book})
+
+    if not created:
+        # Si l'objet CartItem existait déjà, augmentez la quantité
+        cart_item.quantity += 1
+        cart_item.save()
+
+    return redirect('cart_detail')

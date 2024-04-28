@@ -26,35 +26,26 @@
 
 <body>
 	<div class="container">
-		{% if cart_items %}
-		<h2>Your Checkout</h2>
+		{% if object.book_available > 0 %}
 		<div class="row">
-			{% for item in cart_items %}
-			<div class="col-lg-4">
-				<div class="text-center">
-					<img src="{{ item.book.image_url }}" class="card-img-top" style="max-width: 180px;">
-				</div>
+			<div class="col-lg">
+				<br><div class="text-center" style="width: 22rem;">
+					<img src="{{ object.image_url }}" class="card-img">
+				  </div>
 			</div>
-			<div class="col-lg-8">
+			<div class="col-lg">
+				<br>
 				<div class="card card-body">
-					<h3>{{ item.book.title }}</h3>
-					<p>Author: {{ item.book.author }}</p>
-					<p>Price: ${{ item.book.price|floatformat:2 }}</p>
-					<p>Quantity: {{ item.quantity }}</p>
-					<p>Total Price: ${{ item.total_price|floatformat:2 }}</p>
+					<h3>{{object.title}}</h3>
 					<hr>
+					<h4>Total: ${{object.price|floatformat:2}}</h4>
+					<hr>
+
+					<div id="paypal-button-container"></div>
+
 				</div>
 			</div>
-			{% endfor %}
 		</div>
-		<hr>
-		<h4>Total Amount: ${{ total_amount|floatformat:2 }}</h4>
-		<div id="paypal-button-container"></div>
-		{% else %}
-		<div class="mx-auto" style="width: 340px;">
-			<h4 class="text-danger">Sorry, your cart is empty!</h4>
-		</div>
-		{% endif %}
 	</div>
 
 	
@@ -128,6 +119,11 @@
 
 		}).render('#paypal-button-container');
 	</script>
+	{% else %}
+	</div>
+	<div class="mx-auto" style="width: 340px;">
+	<h4 class="text-danger">Sorry, this book is out of Stock !</h4>
+	{% endif %}
 </body>
 
 </html>

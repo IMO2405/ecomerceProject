@@ -9,7 +9,8 @@
 
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+  
   <!-- Custom CSS -->
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="icon" type="image/x-icon" href="{% static 'images/logo.png' %}">
@@ -22,15 +23,26 @@
       <img src="{% static 'images/logo.png' %}" width="30" height="30" class="d-inline-block align-top" alt="">
       BookWise
     </a>
+    <!-- Catégorie sous le titre -->
+    <div class="mt-2 mb-2">
+      <form class="d-flex" action="{% url 'search_results' %}" method="get">
+        <select class="form-control me-2" name="category_id" onchange="this.form.submit()">
+          <option value="">All Categories</option>
+          <option value="2">Littérature</option>
+          <option value="3">Informatique</option>
+          <option value="4">Mathématique</option>
+        </select>
+      </form>
+    </div>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse justify-content-between" id="navbarNavDropdown">
       <form class="form-inline my-2 my-lg-0" action="{% url 'search_results' %}" method="get">
         <input class="form-control mr-sm-2" type="search" name="q" placeholder="Search" aria-label="Search">
+        <!-- Category dropdown -->
         <button class="btn btn-outline-light my-2 my-sm-0" type="submit">Search</button>
       </form>
-      
       <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           {% if user.is_authenticated %}
@@ -56,6 +68,13 @@
           {% endif %}
         </div>
       </div>
+      <!-- Cart Icon -->
+      <a href="{% url 'cart_detail' %}" class="btn btn-success ml-3">
+        <i class="fas fa-shopping-cart"></i>
+        {% if cart_items_count > 0 %}
+          <span class="badge badge-light">{{ cart_items_count }}</span>
+        {% endif %}
+      </a>
     </div>
   </nav>
   

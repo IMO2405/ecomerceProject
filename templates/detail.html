@@ -26,7 +26,7 @@
 
 
 {% if object.book_available > 0 %}
-<a href="{% url 'checkout' object.pk %}" class="btn btn-outline-success" role="button">Buy Now</a>
+<a href="{% url 'add_to_cart' object.pk %}" class="btn btn-outline-primary" role="button">Add to Cart</a>
 {% else %}
 <h4 class="text-danger">Out of Stock !</h4>
 {% endif %}

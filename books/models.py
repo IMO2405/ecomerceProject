@@ -1,5 +1,7 @@
 from django.db import models
 
+from django.contrib.auth import get_user_model
+
 class Category(models.Model):
     name = models.CharField(max_length=100)
 
@@ -31,3 +33,21 @@ class Order(models.Model):
 
     def __str__(self):
         return str(self.product) if self.product else 'Unknown Product'
+
+class Cart(models.Model):
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Cart {self.id} of User {self.user.username if self.user else 'Anonymous'}"
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.quantity} of {self.book.title}"
+
+    def total_price(self):
+        return self.quantity * self.book.price

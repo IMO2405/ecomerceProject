@@ -7,6 +7,8 @@
     <div class="row">
         <div class="col-md-8 offset-md-2">
             <h3 class="text-center text-secondary mt-4 mb-4">Search Results</h3>
+            <!-- Ajouter le formulaire de recherche avec filtrage par catégorie -->
+  
             <hr>
             {% for every in object_list %}
             <div class="card mb-3">
@@ -18,6 +20,8 @@
                         <div class="card-body">
                             <h5 class="card-title"><a href="{% url 'detail' every.pk %}" class="text-dark">{{ every.title }}</a></h5>
                             <p class="card-text">Author: {{ every.author }}</p>
+                            <!-- Ajouter la catégorie ici -->
+                            <p class="card-text"><small class="text-muted">Category: {{ every.category.name }}</small></p>
                         </div>
                     </div>
                 </div>
@@ -31,3 +35,4 @@
     </div>
 </div>
 {% endblock content %}
+
